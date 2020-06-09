@@ -12,8 +12,13 @@ from random import randint
 
 class Game_2048():
     def __init__(self, Size):
+        self.Size = Size
+        # Uses the reset function to create all the necessary bitsw
+        self.reset()
+        
+    def reset(self):
         # Creates an empty board the size that has been specified.
-        self.Board = np.zeros([Size,Size], dtype=int)
+        self.Board = np.zeros([self.Size,self.Size], dtype=int)
         # Randomly fills up the board now, setting self.Board to a nicely-filled
         # array.
         self.FillBoard()
@@ -100,15 +105,15 @@ class Game_2048():
         # Since a check for all non-zeros has already been conducted, this just
         # makes sure that there are enough empty cells to fill up, otherwise
         # doesn't.
-        NewValues = randint(1, (2 if len(x) > 1 else 1))
+        # NewValues = randint(1, (2 if (len(x) > 1) else 1))
+        NewValues = 1
         for _ in range(NewValues):
             # Picks a random index from the possible indices in the cell's x and
             # y indices.
             Rnd = randint(0, len(x) - 1)
-            self.Board[x[Rnd]][y[Rnd]] = 2 ** randint(1,3)
+            self.Board[x[Rnd]][y[Rnd]] = 2 ** randint(1,2)
         if self.EndGame() == True:
             self.Playing = False
-            print("Game Over. Score: {}. Turns: {}".format(self.Board.max(), self.Turns))
 
     def GetAdjacency(self, x, y):
         # Excludes all -ve values or values that exceed the maximum.
@@ -125,7 +130,8 @@ class Game_2048():
         else:
             yRange = (-1, 0, 1)
         # This just excludes all the centre values so it will check AROUND the 
-        # main cell only.
+        # main cell only, and only adjacent cells (L=1 and not L=2 manhattan
+        # distance).
         adjacency = [(i,j) for i in xRange for j in yRange if not ((i == j) | (i == -1) & (j == 1)) | ((i == 1) & (j == -1))]
         return adjacency
 
@@ -134,12 +140,19 @@ class Game_2048():
         # the entire board.
         for x in range(self.Board.shape[0]):
             for y in range(self.Board.shape[1]):
+                # Gets the adjacency arrays (essentially cleaning up the code
+                # nicely) so that only valid cells will be searched. You don't
+                # want to overflow into -ve values, so these prevent that from
+                # happening.
                 Adjacency = self.GetAdjacency(x,y)
                 for i,j in Adjacency:
                     if self.Board[x][y] == self.Board[x+i][y+j]:
                         return False
         return True
-                
+    
+    # This function starts the end-of-game checks. In order to make sure that
+    # the search isn't performed every single time (because that would take a 
+    # pretty long time), this only happens when there are no empty spaces left.
     def EndGame(self):
         if self.CountSpaces() == 0:
             if self.CheckAdjacent() == True:
@@ -152,11 +165,9 @@ Rotation = {"a": 0, "w": 1, "d": 2, "s": 3}
 if __name__ == "__main__":
     Game = Game_2048(4)
     print("Original Board:\n", Game.Board)
-    # while Game.Playing:
-    #     Direction = randint(1,3)
-    #     Game.Move(Direction)
-    #     print(Game.Board)
     while Game.Playing:
-        Direction = Rotation[input()]
+        # Direction = Rotation[input()]
+        Direction = randint(0,3)
         Game.Move(Direction)
         print(Game.Board)
+    print("Game Over. Score: {}. Turns: {}".format(Game.Board.max(), Game.Turns))
