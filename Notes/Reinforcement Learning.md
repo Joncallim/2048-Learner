@@ -1,4 +1,4 @@
-# Reinforcement Learning
+# Reinforcement Learning using Q-Tables
 
 ## Introduction
 
@@ -125,3 +125,11 @@ Values of `α`, `γ`, and `ϵ` are typically based on intuition and some "trial 
 The simplest way (programmatically) to optimised the hyperparameters is to create a comprehensive search function (like a grid search) that selects the parameters that will results in the best reward-to-time-step ratio. This will aid in selecting parameters that can get the maximum reward in as short a time as possible.
 
 The number of penalties corresponding to the hyperparameters value combination can also be tracked as well, since this can be a deciding factor. Genetic algorithms can be also used to optimise the hyperparameter values - But that may beyond the scope of this short write-up.
+
+## Final Notes
+
+Q-Learning is by far one of the simplest Reinforcement Learning algorithms. However, as the number of states increases, it becomes difficult to implement using a Q-table since the size of the table would be huge.
+
+Deep Reinforcement Learning makes use of DNNs instead of the standard Q-Table to take in state information and actions to the input layer, and learns to output the right action over time.
+
+Some other techniques (like CNNs) can also be used to interpret information and extract it from a game to allow an agent to control a game.
