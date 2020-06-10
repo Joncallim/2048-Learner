@@ -18,7 +18,7 @@ or
 
 Run the GUI with `python3 play_2048` once you have navigated to the directory.
 
-![GUI Implementation](Images/GUI_Game_Over.png?raw=true "Game Over GUI Implementation")
+![GUI Implementation](Notes/Images/GUI_Game_Over.png?raw=true "Game Over GUI Implementation")
 
 You can also run it in a standard console (and print over everything) 
 

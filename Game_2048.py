@@ -111,7 +111,7 @@ class Game_2048():
             # Picks a random index from the possible indices in the cell's x and
             # y indices.
             Rnd = randint(0, len(x) - 1)
-            self.Board[x[Rnd]][y[Rnd]] = 2 ** randint(1,2)
+            self.Board[x[Rnd]][y[Rnd]] = 2 #** randint(1,2)
         if self.EndGame() == True:
             self.Playing = False
 

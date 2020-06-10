@@ -100,15 +100,17 @@ class Search_2048():
         return EmptySpaces
     
     def BFS(self, Board):
-        OptimalMove = 0
+        OptimalMove = None
         MaxReward = 0
-        Move_1 = None
+        ''' Move_1 = None
         Reward_1 = 0
         Move_2 = None
         Reward_2 = 0
         Move_3 = None
-        Reward_3 = 0
-        OrigSpace = self.EmptySpaces(Board)
+        Reward_3 = 0 '''
+        _, UniqueCount = np.unique(Board, return_counts = True)
+        UniqueVals = np.count_nonzero(UniqueCount == 1)
+        Spaces = self.EmptySpaces(Board)
         # Iterating through each direction possible.
         for Direction in range(4):
             # Gets a new board based on the predicted movement at each stage.
@@ -117,7 +119,7 @@ class Search_2048():
             # processed. This speeds up later searches when the move is invalid.
             try:
                 if NewBoard.all() != None:
-                    # If there is no move stored currently, saves the current
+                    ''' # If there is no move stored currently, saves the current
                     # move as valid, otherwise does nothing.
                     Move_1 = Direction if (Move_1 is None) else Move_1
                     # If the reward at this state is higher than before (i.e.
@@ -138,14 +140,14 @@ class Search_2048():
                     # This is an array of possible random permutations given the
                     # number of possible spaces on the board. The algorithm wants
                     # to maximise the possible score, so a 3-level search is 
-                    # performed.
+                    # performed. '''
                     PossibleBoards = self.GetChanceBoard(NewBoard)
                     for L2_Board in PossibleBoards:
                         for L2_Direction in range(4):
                             L2_NewBoard = self.AgentMove(L2_Direction, L2_Board)
                             try:
                                 if L2_NewBoard.all() != None:
-                                    # L2 and L3 are only concerned with the maximum
+                                    ''' # L2 and L3 are only concerned with the maximum
                                     # possible score. For an even deeper search,
                                     # this stochastic search could possibly
                                     # find the true maximum, but to save on 
@@ -154,35 +156,101 @@ class Search_2048():
                                     Move_2 = Direction if (Move_2 is None) else Move_2
                                     if L2_NewBoard.max() > Reward_1:
                                         Reward_2 = L2_NewBoard.max()
-                                        Move_2 = Direction
+                                        Move_2 = Direction '''
                                     L2_PossibleBoards = self.GetChanceBoard(L2_NewBoard)
                                     for L3_Board in L2_PossibleBoards:
                                         for L3_Direction in range(4):
                                             L3_NewBoard = self.AgentMove(L3_Direction, L3_Board)
                                             try:
                                                 if L3_NewBoard.all() != None:
-                                                    Move_3 = Direction if (Move_3 is None) else Move_3
-                                                    if L3_NewBoard.max() > Reward_2:
-                                                        Reward_3 = L2_NewBoard.max()
-                                                        Move_3 = Direction
+                                                    L3_PossibleBoards = self.GetChanceBoard(L3_NewBoard)
+                                                    for L4_Board in L3_PossibleBoards:
+                                                        for L4_Direction in range(4):
+                                                            L4_NewBoard = self.AgentMove(L4_Direction, L4_Board)
+                                                            try:
+                                                                if L4_NewBoard.all() != None:
+                                                                    L4_PossibleBoards = self.GetChanceBoard(L4_NewBoard)
+                                                                    for L5_Board in L4_PossibleBoards:
+                                                                        for L5_Direction in range(4):
+                                                                            L5_NewBoard = self.AgentMove(L5_Direction, L5_Board)
+                                                                            try:
+                                                                                if L5_NewBoard.all() != None:
+                                                                                    if OptimalMove == None:
+                                                                                        OptimalMove = Direction
+                                                                                    else:
+                                                                                        ''' First priority: highest possible reward. '''
+                                                                                        if L5_NewBoard.max() > MaxReward:
+                                                                                            MaxReward = L5_NewBoard.max()
+                                                                                            OptimalMove = Direction
+                                                                                            Spaces = self.EmptySpaces(L5_NewBoard)
+                                                                                            ''' If the reward is the same, tries to maximise 
+                                                                                            the number of empty spaces on the board '''
+                                                                                        elif L5_NewBoard.max() == MaxReward:
+                                                                                            _, NewCount = np.unique(L5_NewBoard, return_counts = True)
+                                                                                            NewUniqueVals = np.count_nonzero(NewCount == 1)
+                                                                                            if NewUniqueVals > UniqueVals:
+                                                                                                MaxReward = L5_NewBoard.max()
+                                                                                                OptimalMove = Direction
+                                                                                                Spaces = self.EmptySpaces(L5_NewBoard)
+                                                                                                UniqueVals = NewUniqueVals
+                                                                                            elif self.EmptySpaces(L5_NewBoard) > Spaces:
+                                                                                                MaxReward = L5_NewBoard.max()
+                                                                                                OptimalMove = Direction
+                                                                                                Spaces = self.EmptySpaces(L5_NewBoard)
+                                                                            except:
+                                                                                L5_NewBoard == None
+                                                            except:
+                                                                L4_NewBoard == None
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    # if OptimalMove == None:
+                                                    #     OptimalMove = Direction
+                                                    # else:
+                                                    #     ''' First priority: highest possible reward. '''
+                                                    #     if L3_NewBoard.max() > MaxReward:
+                                                    #         MaxReward = L2_NewBoard.max()
+                                                    #         OptimalMove = Direction
+                                                    #         Spaces = self.EmptySpaces(L3_NewBoard)
+                                                    #         ''' If the reward is the same, tries to maximise 
+                                                    #         the number of empty spaces on the board '''
+                                                    #     elif L3_NewBoard.max() == MaxReward:
+                                                    #         _, NewCount = np.unique(L3_NewBoard, return_counts = True)
+                                                    #         NewUniqueVals = np.count_nonzero(NewCount == 1)
+                                                    #         if NewUniqueVals > UniqueVals:
+                                                    #             MaxReward = L2_NewBoard.max()
+                                                    #             OptimalMove = Direction
+                                                    #             Spaces = self.EmptySpaces(L3_NewBoard)
+                                                    #             UniqueVals = NewUniqueVals
+                                                    #         elif self.EmptySpaces(L3_NewBoard) > Spaces:
+                                                    #             MaxReward = L2_NewBoard.max()
+                                                    #             OptimalMove = Direction
+                                                    #             Spaces = self.EmptySpaces(L3_NewBoard)
+                                                                
+                                                            
                                             except:
                                                 L3_NewBoard == None
                             except:
                                 L2_NewBoard == None
             except:
                 NewBoard == None
-        OptimalMove = Move_1 if Reward_1 < Reward_2 else Move_2
-        OptimalMove = OptimalMove if (Reward_1 ** 2) <= Reward_3 else Move_1
+        ''' OptimalMove = Move_1 if Reward_1 < Reward_2 else Move_2
+        OptimalMove = OptimalMove if (Reward_1 ** 2) <= Reward_3 else Move_1 '''
         return OptimalMove, MaxReward
     
     def FillBoard_1(self, x, y, Board):
         Output = []
         # For each possible value in the cell, puts and output board in the array
-        # of possible board permutations.
-        for rnd in range(1,3):
-            NewBoard = deepcopy(Board)
-            NewBoard[x][y] = 2 ** rnd
-            Output.append(NewBoard)
+        # of possible board permutations. Range 1,3 means that values of 1 and 2 
+        # appear - which means 2^1 and 2^2: 2 and 4.
+        # for rnd in range(1,3):
+        #     NewBoard = deepcopy(Board)
+        #     NewBoard[x][y] = 2 ** rnd
+        #     Output.append(NewBoard)
+        NewBoard = deepcopy(Board)
+        NewBoard[x][y] = 2
+        Output.append(NewBoard)
         return Output
     
     # Currently not used.

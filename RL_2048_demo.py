@@ -22,20 +22,30 @@ class Model(tf.keras.Model):
     def __init__(self):
         super(Model, self).__init__()
         self.Dense = [[],[],[],[],[]]
-        self.Dense[0] = tf.keras.layers.Dense(64, activation = tf.nn.relu)
-        self.Dense[1] = tf.keras.layers.Dense(32, activation = tf.nn.relu)
-        self.Dense[2] = tf.keras.layers.Dense(16, activation = tf.nn.relu)
-        self.Dense[3] = tf.keras.layers.Dense(8, activation = tf.nn.relu)
-        self.Dense[4] = tf.keras.layers.Dense(4, activation = tf.nn.softmax)
-        self.Dropout = tf.keras.layers.Dropout(0.5)
+        self.Dense_1 = tf.keras.layers.Dense(64, activation = tf.nn.relu)
+        self.Dense_2 = tf.keras.layers.Dense(32, activation = tf.nn.relu)
+        self.Dense_3 = tf.keras.layers.Dense(16, activation = tf.nn.relu)
+        self.Dense_4 = tf.keras.layers.Dense(8, activation = tf.nn.relu)
+        self.Dense_5 = tf.keras.layers.Dense(4, activation = tf.nn.softmax)
+        self.Dropout_1 = tf.keras.layers.Dropout(0.5)
+        self.Dropout_2 = tf.keras.layers.Dropout(0.5)
+        self.Dropout_3 = tf.keras.layers.Dropout(0.5)
+        self.Dropout_4 = tf.keras.layers.Dropout(0.5)
 
-    def Call(self, inputs, training = False):
-        x = self.Dense[0](inputs)
-        for i in range(1,5):
-            if training:
-                x = self.Dropout(x, training = training)
-            x = self.Dense[i](x)
-        return x
+    def call(self, inputs, training = False):
+        x = self.Dense_1(inputs)
+        if training:
+            x = self.Dropout_1(x, training = training)
+        x = self.Dense_2(x)
+        if training:
+            x = self.Dropout_2(x, training = training)
+        x = self.Dense_3(x)
+        if training:
+            x = self.Dropout_3(x, training = training)
+        x = self.Dense_4(x)
+        if training:
+            x = self.Dropout_4(x, training = training)
+        return self.Dense_5(x)
     
 model = Model()
 model.compile(loss='categorical_crossentropy',
