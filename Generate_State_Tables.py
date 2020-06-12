@@ -149,11 +149,11 @@ class QLearning():
         alpha = 0.1
         gamma = 0.7
         epsilon = 0.1
-        decay = 0.99
+        decay = 0.9999999
         HighScore, MaxScore, MaxReward = 0,0,0
         all_epochs, all_scores, all_rewards, all_max_tile = [], [], [], []
         for it in range(iterations):
-            epsilon *= 1.0001
+            epsilon *= 1.0000001
             alpha *= decay
             gamma *= decay
             ''' Resetting values every time the game ends. '''
@@ -231,7 +231,7 @@ if __name__ == '__main__':
     time and with limited memory. '''
     QLearning = QLearning(4)
     QLearning.FindInitialState(100)
-    QLearning.Search(iterations=100,
+    QLearning.Search(iterations=10000000,
                       print_graphs = False)
     QLearning.Tables.SaveTables()
     QLearning.Q_Move()
