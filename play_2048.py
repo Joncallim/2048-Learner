@@ -11,21 +11,55 @@ from curses import wrapper
 from Game_2048 import Game_2048
 
 
-def Draw_Rows(Row):
-    StringRow = []
-    for value in Row:
-        cell = ''
-        value = str(value)
-        if len(value) < 4:
-            for _ in range(4-len(value)):
-                cell += " "
-            cell += value
-        StringRow.append(cell)
-    Output = "\u2551".join(StringRow)
-    return "{}{}{}".format("\u2551", Output, "\u2551")
+def DrawDivider(Board):
+    TileLength = len(str(Board.max())) if len(str(Board.max())) > 2 else 3
+    Divider = "\u2560"
+    for _ in range(len(Board)):
+        for _ in range(TileLength):
+            Divider += "\u2550"
+        Divider += "\u256C"
+    Divider = Divider[:len(Divider) - 1] 
+    Divider += "\u2563"
+    return Divider
+
+def DrawTopRow(Board):
+    TileLength = len(str(Board.max())) if len(str(Board.max())) > 2 else 3
+    Pipes = "\u2554"
+    for _ in range(len(Board)):
+        for _ in range(TileLength):
+            Pipes += "\u2550"
+        Pipes += "\u2566"
+    Pipes = Pipes[:len(Pipes) - 1] 
+    Pipes += "\u2557"
+    return Pipes
+
+def DrawBottomRow(Board):
+    TileLength = len(str(Board.max())) if len(str(Board.max())) > 2 else 3
+    Pipes = "\u255A"
+    for _ in range(len(Board)):
+        for _ in range(TileLength):
+            Pipes += "\u2550"
+        Pipes += "\u2569"
+    Pipes = Pipes[:len(Pipes) - 1] 
+    Pipes += "\u255C"
+    return Pipes
+
+def DrawRows(Board):
+    TileLength = len(str(Board.max())) if len(str(Board.max())) > 2 else 3
+    Rows = []
+    for _ in range(len(Board)):
+        Rows.append([])
+    for i,row in enumerate(Board):
+        Rows[i] = "\u2551"
+        for cell in row:
+            for _ in range(TileLength - len(str(cell))):
+                Rows[i] += " "
+            Rows[i] += str(cell)
+            Rows[i] += "\u2551"
+    return Rows
 
 def Draw_Game(stdscr):
-    Game = Game_2048(4)
+    Game = Game_2048(5)
     Key = 0
     cursor_x = 0
     cursor_y = 0
@@ -67,16 +101,13 @@ def Draw_Game(stdscr):
         # Declaration of strings
         title = "2048 - GUI Implementation"[:width-1]
         if Game.Playing:
-            subtitle = "Use the Arrow Keys or WASD to move"[:width-1]
+            subtitle = "Use the Arrow Keys or WASD to move. Score: {}".format(Game.Score)[:width-1]
         else:
             subtitle = "Game Over! Score: {}, Moves: {}".format(Game.Board.max(), Game.Turns)[:width-1]
-        TopBound = "\u2554\u2550\u2550\u2550\u2550\u2566\u2550\u2550\u2550\u2550\u2566\u2550\u2550\u2550\u2550\u2566\u2550\u2550\u2550\u2550\u2557"[:width-1]
-        Divider = "\u2560\u2550\u2550\u2550\u2550\u256C\u2550\u2550\u2550\u2550\u256C\u2550\u2550\u2550\u2550\u256C\u2550\u2550\u2550\u2550\u2563"[:width-1]
-        BottomBound = "\u255A\u2550\u2550\u2550\u2550\u2569\u2550\u2550\u2550\u2550\u2569\u2550\u2550\u2550\u2550\u2569\u2550\u2550\u2550\u2550\u255C"[:width-1]
-        Row1 = Draw_Rows(Game.Board[0])[:width-1]
-        Row2 = Draw_Rows(Game.Board[1])[:width-1]
-        Row3 = Draw_Rows(Game.Board[2])[:width-1]
-        Row4 = Draw_Rows(Game.Board[3])[:width-1]
+        TopBound = DrawTopRow(Game.Board)[:width-1]
+        Divider = DrawDivider(Game.Board)[:width-1]
+        BottomBound = DrawBottomRow(Game.Board)[:width-1]
+        Rows = DrawRows(Game.Board)
         statusbarstr = "Press 'q' to exit | Maximum Score: {} | Turns: {}".format(Game.Board.max(), Game.Turns)
 
 
@@ -110,15 +141,16 @@ def Draw_Game(stdscr):
         # Print rest of text
         stdscr.addstr(start_y +  1, start_x_subtitle, subtitle)
         stdscr.addstr(start_y +  3, (width // 2) - 2, '-' * 4)
-        stdscr.addstr(start_y +  5, start_x_GameBoard, TopBound)
-        stdscr.addstr(start_y +  6, start_x_GameBoard, Row1)
-        stdscr.addstr(start_y +  7, start_x_GameBoard, Divider)
-        stdscr.addstr(start_y +  8, start_x_GameBoard, Row2)
-        stdscr.addstr(start_y +  9, start_x_GameBoard, Divider)
-        stdscr.addstr(start_y + 10, start_x_GameBoard, Row3)
-        stdscr.addstr(start_y + 11, start_x_GameBoard, Divider)
-        stdscr.addstr(start_y + 12, start_x_GameBoard, Row4)
-        stdscr.addstr(start_y + 13, start_x_GameBoard, BottomBound)
+        yCount = 5
+        stdscr.addstr(start_y +  yCount, start_x_GameBoard, TopBound)
+        yCount += 1
+        for i in range(len(Game.Board)):
+            stdscr.addstr(start_y + yCount, start_x_GameBoard, Rows[i][:width-1])
+            yCount += 1
+            if i != len(Game.Board) - 1:
+                stdscr.addstr(start_y + yCount, start_x_GameBoard, Divider)
+                yCount += 1
+        stdscr.addstr(start_y + yCount, start_x_GameBoard, BottomBound)
         stdscr.move(height-1, width-1)
 
         # Refresh the screen

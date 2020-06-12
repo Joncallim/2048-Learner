@@ -133,3 +133,17 @@ Q-Learning is by far one of the simplest Reinforcement Learning algorithms. Howe
 Deep Reinforcement Learning makes use of DNNs instead of the standard Q-Table to take in state information and actions to the input layer, and learns to output the right action over time.
 
 Some other techniques (like CNNs) can also be used to interpret information and extract it from a game to allow an agent to control a game.
+
+## Why are Q-Tables not effective for 2048?
+
+It is easy to imagine that it should be a fairly simple problem to model, given that there are only 16 tiles, and a (relatively) finite number of state spaces that can be entered into, especially assuming that the game terminates at 2048. However...
+
+2048 is 2^11. That means that from 2 to 2048, there need to be 11 different possible values for EACH cell. Let's pretend, for a start, that any time that 2048 is encountered, the game ends. That means you can change that to a state of its own, so only 10 different possible values need to occur in each cell.
+
+There are 16 cells in a 4x4 grid, and for 10 different values (0-9) in a decimal (base-10) number, that means that you'd need a 16-digit number from 0,000,000,000,000,000 to 9,999,999,999,999,999 to represent every possible permutation of 2 to 1024 (and that doesn't even include zeros). 
+
+The number of spaces that need to be entered into increases dramatically as you add new numbers that need to be encountered. This is relatively simple to represent now that the basic logic behind getting the sum of possible permutations is known. Just change the number base for a 16-digit number, and calculation is relatively simple.
+
+An array of 10 Quadrillion possible permutations seems impossibly impractical, especailly since most computers aren't going to have that much memory - Assuming every number is a 16-bit integer (getting us up to a score of 65,536 at maximum), that leaves us with a still-massive array of over 20 exabytes - or 20,000 petabytes. (I think modern Threadripper and Xeon processors support up to 2 terabytes of RAM at the moment) And this doesn't even include hashing or indexing!
+
+So... Not a great solution. Deep Reinforcement Learning will then need to come to the rescue!

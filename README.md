@@ -45,6 +45,26 @@ While the GUI implementation is not scalable (It'll go up to 4 digits then break
 6. Number of Turns = Number of valid moves made.
 
 ---
+### Updates to Curses Implementation, 12 Jun 2020:
+
+- Now works with any board size (but will have to access the python file to change the size, and due to the nature of the size of the console you can't just print a bigger board... I'll work on making this more generalised (and auto resizing in the future, but not a priority - this change was a distraction)
+
+---
+### Q-Learning Implementation, 11 Jun 2020:
+
+- Created the `Generate_State_Tables.py` file, which as you can tell, was intended just to generate all possible state spaces. Back of the envelope calculations led me to realise that there are over ten trillion possible permutations just to get to 2048, and this gets exponentially larger with higher values.
+- Using a Dict to store the data because it's a LOT faster than a numpy array. Also, not entirely possible to generate all possible state-spaces. So have written an algorithm that explores the state space as it goes along, generating various possible permutations.
+
+- Updated `Game_2048.py` to have a rewards feature as well (`ValidMoves`).
+	- This will first determine if a move is invalid, and assign a penalty to it.
+	- It then checks if the maximum cell value is in a corner. If it's in a corner and the new maximum value is higher than the previous, rewards it with the full **score** (i.e. whatever new cells have been created.), **log(2) of the new maximum**, and the **number of sequential cells** from this maximum cell. This is done using `GetSequence`, which first rotates the board so that the maximum value is in a corner, then searches in a **horizontal**-first and **vertical**-first method to count the number of sequential blocks there are. It then takes the maximum possible score from either, and gives this as a reward too.
+	- If no new maximum is achieved, awards the **score**, and also the **number of sequential cells**. 
+	- Finally, if the max cell moves out of the corner, it will be given a score of 2 if the move does not get a score, or **half the new score** if it combines some blocks.
+
+- States are encoded to hexadecimal (since to get to 2048 you need about `2^11`, so hex should give me lots of headroom to get to insanely huge numbers (Unlikely, I think). Each position on the board is encoded to a 16-digit hexadecimal number (more in notes). This speeds up search to O(1) instead of O(n) when looking for an already-found state.
+
+---
+
 ### NN Implementation:
 
 Yet to do, will use a RL algorithm and mess around until I'm happy.
