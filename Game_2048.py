@@ -31,9 +31,7 @@ class Game_2048():
         self.Board = np.zeros([self.Size,self.Size], dtype=int)
         # Randomly fills up the board now, setting self.Board to a nicely-filled
         # array.
-        self.Board[0][1] = 2
-        self.Board[2][2] = 2
-        # self.FillBoard()
+        self.FillBoard()
         self.Playing = True
         self.Turns = 0
         self.Score = 0
@@ -201,6 +199,7 @@ class Game_2048():
         # any cell that is 0, which makes it 1, and all non-zero cells will be 
         # 0. nonzero() then takes only the cells that are NOT zero... So 0s.
         x, y = (self.Board == 0).nonzero()
+        '''
         # Since a check for all non-zeros has already been conducted, this just
         # makes sure that there are enough empty cells to fill up. If there are
         # only 2 cell to fill, it will not do this action, and instead fill only
@@ -215,16 +214,17 @@ class Game_2048():
                 self.Board[x[Rnd]][y[Rnd]] = 2 ** randint(1,2)
         # This condition triggers whenever there is only 1 space left on the board.
         else:
-            # If there are n-1 unique values on the board and there is 1 empty
-            # space, it could be very well that a player has done really well and
-            # arrange all the tiles so that there are just exactly enough spaces
-            # to keep winning, so the program will reward him/her. 
-            Uniques = np.unique(self.Board)
-            if len(Uniques) == (self.Size * self.Size):
-                self.Board[x[0]][y[0]] = Uniques[1]
-            else:
-                Rnd = randint(0,len(x)-1)
-                self.Board[x[Rnd]][y[Rnd]] = 2 ** randint(1,2)
+        '''
+        # If there are n-1 unique values on the board and there is 1 empty
+        # space, it could be very well that a player has done really well and
+        # arrange all the tiles so that there are just exactly enough spaces
+        # to keep winning, so the program will reward him/her. 
+        Uniques = np.unique(self.Board)
+        if len(Uniques) == (self.Size * self.Size):
+            self.Board[x[0]][y[0]] = Uniques[1]
+        else:
+            Rnd = randint(0,len(x)-1)
+            self.Board[x[Rnd]][y[Rnd]] = 2 ** randint(1,2)
         # Checking if the game should end - if the newly added tiles have killed
         # the game...
         if self.EndGame() == True:

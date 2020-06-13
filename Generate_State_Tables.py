@@ -35,27 +35,15 @@ class Tables():
         Game_2048 class in order to search through the entire state space.'''
         self.Game = Game_2048(Size)
         self.Size = Size
-        with open('Files/State_Table.json', 'r') as file:
-            self.State_Table = json.load(file)
         with open('Files/Q_Table.json', 'r') as file:
             self.Q_Table = json.load(file)
-        # self.State_Table = {}
-        # self.Q_Table = {}
     
     ''' Utility function to reset the Q-Table - goes through each value in the
     Q-Table and resets it to 0 reward for all actions. '''
     def ResetQTable(self):
-        for key in self.State_Table.keys():
+        for key in self.Q_Table.keys():
             self.Q_Table.update({key: [0,0,0,0]})
-    
-    ''' This simply adds a new state using the key and board. It will determine
-    the possible moves and rewards/penalties using the ValidMoves function from
-    the Game class. The Q-Table is also updated, and initialised to 0. '''
-    def AddState(self, InputBoard, State):
-        MovePenalty = self.Game.ValidMoves(InputBoard)
-        self.State_Table.update({State: {'max reward': int(InputBoard.max()),
-                                         'rewards': [float(move) for move in MovePenalty]}})
-        self.Q_Table.update({State: [0, 0, 0, 0]})
+        
     
     ''' Given a particular board configuration, gets the key (state) index that
     references the particular board. This could be optimised for speed and memory
@@ -71,13 +59,11 @@ class Tables():
                 is always added on, so that the correct indices for each cell 
                 will always be present.'''
                 State += hex(int(HexVal)).lstrip("0x").rstrip("L") if HexVal != 0 else "0"
-        if State not in self.State_Table:
-            self.AddState(InputBoard, State)
+        if State not in self.Q_Table:
+            self.Q_Table.update({State: [0, 0, 0, 0]})
         return State 
     
     def SaveTables(self):
-        with open('Files/State_Table.json', 'w') as f:
-            f.write(json.dumps(self.State_Table, sort_keys=True, indent=4))
         with open('Files/Q_Table.json', 'w') as f:
             f.write(json.dumps(self.Q_Table, sort_keys=True, indent=4))
     
@@ -122,7 +108,7 @@ class QLearning():
                 state = self.Tables.GetState(self.Game.Board)
                 ''' The reward comes from the State Table (obtained from the 
                 ValidMoves function in the Game class. '''
-                reward = self.Tables.State_Table[state]['rewards'][action]
+                reward = self.Game.ValidMoves(self.Game.Board)[action]
                 Old_Val = self.Tables.Q_Table[state][action]
                 ''' Whether a random or chosen action was taken, the game moves
                 the tiles in that direction. '''
@@ -171,7 +157,7 @@ class QLearning():
                     action = np.argmax(self.Tables.Q_Table[state])
                 ''' The reward comes from the State Table (obtained from the 
                 ValidMoves function in the Game class. '''
-                reward = self.Tables.State_Table[state]['rewards'][action]
+                reward = self.Game.ValidMoves(self.Game.Board)[action]
                 Old_Val = self.Tables.Q_Table[state][action]
                 ''' Whether a random or chosen action was taken, the game moves
                 the tiles in that direction. '''
@@ -216,7 +202,7 @@ class QLearning():
         for i in range(iterations):
             self.Game.reset()
             while self.Game.Playing:
-                action = np.argmax(self.Tables.Q_Table[state]) if np.max(self.Tables.Q_Table[state]) != 0 else np.argmax(self.Tables.State_Table[state]['rewards'])
+                action = np.argmax(self.Tables.Q_Table[state]) if np.max(self.Tables.Q_Table[state]) != 0 else np.argmax(self.Game.ValidMoves(self.Game.Board))
                 self.Game.Move(action)
                 state = self.Tables.GetState(self.Game.Board)
             all_scores += self.Game.Score
@@ -231,7 +217,7 @@ if __name__ == '__main__':
     time and with limited memory. '''
     QLearning = QLearning(4)
     QLearning.FindInitialState(100)
-    QLearning.Search(iterations=10000000,
+    QLearning.Search(iterations=100,
                       print_graphs = False)
     QLearning.Tables.SaveTables()
     QLearning.Q_Move()
