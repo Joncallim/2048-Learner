@@ -251,8 +251,136 @@ def UseQTable(env, q_table):
         )
         epochs += 1
     print_frames(frames)
+    
+def DeepQLearning():
+    env = gym.make("Taxi-v3").env
+    agent = DeepLearning()
+    ''' Easy way to plot metrics later on. '''
+    all_epochs = []
+    all_penalties = []
+    ''' This is just training the model 100,000 times. '''
+    for eps in range(1, 100001):
+        ''' Resetting all variables. '''
+        state = env.reset()
+        epochs, penalties, reward, = 0, 0, 0
+        done = False
+        while not done:
+            ''' First, gets the next agent according to the deep learning agent.
+            This can either be a random action or one that exploits the Q-values.'''
+            action = agent.GetNextAction(state)
+            ''' The particular chosen action is taken to get the next_state and
+            the reward table for that state '''
+            next_state, reward, done, info = env.step(action)
+            ''' The agent then evaluates if the step taken was a good step, and
+            updates its weights to reflect that. Training happens inside this
+            function, effectively. '''
+            agent.Update(state, next_state, action, reward)
+            if reward == -10:
+                penalties += 1
+            state = next_state
+            epochs += 1
+            if done:
+                print(done)
+        all_epochs.append(epochs)
+        all_penalties.append(penalties)
+        if eps % 10 == 0:
+            clear_output(wait=True)
+            print(f"Episode: {eps}")
+    print("Training finished.\n")
+    plt.subplot(2,1,1)
+    plt.plot(all_epochs)
+    plt.ylabel('Number of Epochs')
+    plt.subplot(2,1,2)
+    plt.plot(all_penalties)
+    plt.ylabel('Number of Penalties')
+    plt.xlabel('Training Episode')
+    plt.show()
+    return env
+
+from keras.models import Sequential
+from keras.layers import Dense, InputLayer
+
+
+class DeepLearning:
+    def __init__(self, learning_rate=0.5, discount=0.95, exploration_rate=1.0, iterations=1000):
+        self.learning_rate = learning_rate
+        self.discount=discount
+        self.exploration_rate = exploration_rate
+        '''This represents the shift from exploration to exploitation'''
+        self.exploration_delta = 1.0 / iterations
+        self.DataSize = 501
+        self.DefineModel()
+        
+    def DefineModel(self):
+        self.model = Sequential()
+        ''' The input is an array of a single item - the state. The input is two
+        dimensional due to the posibility of batched training, but that is not
+        used in this particular example. '''
+        self.model.add(InputLayer(batch_input_shape=(1, self.DataSize)))
+        ''' This creates the actual neural network: two layers with 32 hidden 
+        nodes each, with the sigmoud activation intialised to 0 (which keeps it
+        stable). '''
+        self.model.add(Dense(1024, activation='sigmoid'))
+        self.model.add(Dense(512, activation='sigmoid'))
+        self.model.add(Dense(256, activation='sigmoid'))
+        self.model.add(Dense(128, activation='sigmoid'))
+        self.model.add(Dense(64, activation='sigmoid'))
+        self.model.add(Dense(32, activation='sigmoid'))
+        self.model.add(Dense(16, activation='sigmoid'))
+        ''' The output is defined for all possible actions - Q for possible
+        actions. This can also work with batched training, but this current
+        model assumes no batching. '''
+        self.model.add(Dense(6, activation='linear'))
+        self.model.compile(loss='mse', optimizer='adam', metrics=['mae'])
+    
+    ''' Given a particular state, this uses the model to estimate the Q value
+    by inference. '''
+    def GetQ(self, state):
+        ''' Here, the model's input is an array of a single item - the state.
+        The output is an Array of Q values for that state, for each possible
+        action that can be taken. the identity matrix is used to one-hot encode
+        the 500-length identity matrix, and the state:state+1 term is used to 
+        make it an array. '''
+        return self.model.predict(np.identity(self.DataSize)[state:state+1])
+    
+    def GetNextAction(self, state):
+        if random.random() > self.exploration_rate:
+            return self.Exploit(state)
+        else:
+            return self.Explore()
+    
+    ''' Exploitation uses the highest Q value as estimated by the model. Argmax
+    returns the index of the highest Q, corresponding to the appropriate action
+    that the model should take. '''
+    def Exploit(self, state):
+        return np.argmax(self.GetQ(state))
+    
+    def Explore(self):
+        return random.randint(0,5)
+    
+    def Train(self, state, action, reward, new_state):
+        ''' First, getting the Q values for the current state by inference, then
+        does the same thing for the next state. '''
+        state_Q_values = self.GetQ(state)[0]
+        new_state_Q_values = self.GetQ(new_state)[0]
+        ''' Now gets the real Q values for the action just taken, which is the
+        Q values that should be trained towards. '''
+        state_Q_values[action] = reward + self.discount * np.amax(new_state_Q_values)
+        ''' Setting up various training data bits, then training the model.'''
+        training_input = np.identity(self.DataSize)[state:state+1]
+        ''' Reshapes the array for input into the neural net. '''
+        target_output = state_Q_values.reshape(-1,6)
+        self.model.fit(training_input, target_output, epochs=1, verbose=0)
+    
+    def Update(self, state, new_state, action, reward):
+        ''' First, training the model with the newly-obtained data. '''
+        self.Train(state, action, reward, new_state)
+        ''' Shift exploration rate (epsilon) downwards, so more exploitation
+        will progressively happen. '''
+        if self.exploration_rate > 0:
+            self.exploration_rate *= 0.999999999
 
 if __name__ == "__main__":
-    env, q_table = QLearning()
-    Eval(env, q_table)
-    UseQTable(env, q_table)
+    # env, q_table = QLearning()
+    # Eval(env, q_table)
+    DeepQLearning()

@@ -7,3 +7,4 @@ __pycache__/Game_2048.cpython-37.pyc
 tutorial/
 *.pyc
 .DS_Store
+dqn.py

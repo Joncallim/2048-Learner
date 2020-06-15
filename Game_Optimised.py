@@ -13,12 +13,11 @@ from random import randint
 
 class Game():
     
-    def __init__(self, Size):
-        self.Size = Size
+    def __init__(self):
         self.reset()
     
     def reset(self):
-        self.Board = np.zeros([self.Size,self.Size], dtype = int)
+        self.Board = np.zeros([4,4], dtype = int)
         self.FillBoard()
         self.Playing = True
         
@@ -39,6 +38,105 @@ class Game():
         otherwise the self.Board assignments should just work. '''
         if type(Board) == bool:
             return Board
+    
+    ''' This function moves the board from right to left. This is used for all
+    versions of movement, and np.rot90 is used to rotate the board for different
+    directional movements. '''
+    def MoveBoard(self, Board = False):
+        ''' The score for each move is the total new tiles created from that 
+        move (not the random tiles created). '''
+        score = 0
+        Board = self.Board if (type(Board) == bool) else Board
+        ''' Iterating through each row one at a time with the new zeros array
+        that is essentially the output board. '''
+        NewBoard = np.zeros([len(Board), len(Board)], dtype=int)
+        for row, col in enumerate(Board):
+            newRow = np.zeros(len(col), dtype = col.type)
+            j = 0
+            ''' "previous" stores the last-seen value, and checks if the new
+            cell that's being looked at should be either the sum of two values
+            or just a new value moved over. '''
+            previous = None
+            for i in range(col.size):
+                ''' If it is not the cell's value is 0, skips the cell. '''
+                if col[i] != 0:
+                    if previous == None:
+                        previous = col[i]
+                        ''' If the previous value seen is the same at the new 
+                        one, it will merge the cells! '''
+                    elif previous == col[i]:
+                        newRow[j] = 2 * col[i]
+                        score += newRow[j]
+                        j += 1
+                        previous = None
+                        ''' If the new value is different to the old value, then
+                        just slides the value over.'''
+                    else:
+                        newRow[j] = previous
+                        j += 1
+                        previous = col[i]
+            ''' If there is still a value stored when the iterations are over
+            for a given row, pushes that value to the last known cell. '''
+            if previous != None:
+                newRow[j] = previous
+            NewBoard[row] = newRow
+        return NewBoard, score
+    
+    def fill(self, Board = False):
+        Board = self.Board if (type(Board) == bool) else Board
+        x,y = (self.Board == 0).nonzero()
+        uniques = np.unique(self.Board)
+        if len(uniques) == 16:
+            Board[x[0]][y[0]] = uniques[1]
+        else:
+            rnd = randint(0,len(x)-1)
+            Board[x[rnd]][y[rnd]] = 2 ** randint(1,2)
+        self.CheckGameEnd()
+        return Board
+    
+    def getAdj(self, x, y):
+        # Excludes all -ve values or values that exceed the maximum.
+        if x == 0:
+            xRange = (0,1)
+        elif x == self.Board.shape[0] - 1:
+            xRange = (-1, 0)
+        else:
+            xRange = (-1, 0, 1)
+        if y == 0:
+            yRange = (0,1)
+        elif y == self.Board.shape[0] - 1:
+            yRange = (-1, 0)
+        else:
+            yRange = (-1, 0, 1)
+        # This just excludes all the centre values so it will check AROUND the 
+        # main cell only, and only adjacent cells (L=1 and not L=2 manhattan
+        # distance).
+        adjacency = [(i,j) for i in xRange for j in yRange if not ((i == j) | (i == -1) & (j == 1)) | ((i == 1) & (j == -1))]
+        return adjacency
+    
+    def CheckGameEnd(self, Board = False):
+        Board = self.Board if (type(Board)==bool) else Board
+        if (Board != 0).all():
+            for x in range(Board.shape[0]):
+                for y in range(self.Board.shape[1]):
+                    adj = self.getAdj(x,y)
+                    for i,j in adj:
+                        if Board[x][y] == self.board[x+i][y+j]:
+                            return False
+        return True
+    
+    def step(self, action):
+        OldBoard = np.rot90(self.Board, action)
+        NewBoard, score = self.MoveBoard(OldBoard)
+        if (NewBoard == OldBoard).all():
+            pass
+        else:
+            self.Score += score
+            self.Board = NewBoard
+            self.fill()
+            self.turns += 1
+            done = self.CheckGameEnd()
+        return NewBoard, done
     
     def DrawBoard(self, print_now = True, Board = False):
         Board = self.Board if (type(Board) == bool) else Board
